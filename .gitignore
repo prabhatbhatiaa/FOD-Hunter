@@ -1,0 +1,35 @@
+# Environment & Secrets (DO NOT COMMIT)
+.env
+.env.*
+!.env.example
+
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Model Weights (Ultralytics auto-downloads yolov8n.pt on first run)
+*.pt
+
+# Scratch / Test images
+crop.jpg
+test_*.jpg
+wp*.jpg
+
+# Operating System & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
