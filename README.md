@@ -1,7 +1,20 @@
-<h1 align="center">FOD Hunter</h1> 
-<p align="center">Autonomous Runway Debris Inspection & Re-Verification System</p>
+# Runway FOD Patrol: Autonomous Inspection & Re-Verification
 
-Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) along an airport runway, identifies small surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect uncertain detections before logging verified visual evidence.
+Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) along an airport runway, detects surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect uncertain detections before logging verified visual evidence.
+
+---
+
+## Visual Evidence & Inspection Showcase
+
+At each waypoint, the quadruped executes a two-tier verification routine: an initial distant sweep ($30 \le \text{area} < 250\text{px}$, confidence `0.55 - 0.80`), followed by an autonomous $1.0\text{m}$ body-frame advance to capture a high-resolution close-up confirmation ($\text{area} \ge 250\text{px}$, confidence $\ge 0.88$).
+
+| Waypoint & Target Hazard | Initial Distant Scan (Uncertain / Standoff) | Close-up Re-Inspection (Confirmed FOD) |
+| :--- | :---: | :---: |
+| **runway-wp-01**<br/>`FOD-01: Red Block`<br/>Initial Conf: `0.62` &rarr; Reinspected: `0.90` | <img src="evidence/uncertain_initial_runway-wp-01.jpg" width="380" alt="WP1 Initial Scan" /> | <img src="evidence/reinspected_runway-wp-01.jpg" width="380" alt="WP1 Reinspected" /> |
+| **runway-wp-02**<br/>`FOD-02: Yellow Block`<br/>Initial Conf: `0.62` &rarr; Reinspected: `0.90` | <img src="evidence/uncertain_initial_runway-wp-02.jpg" width="380" alt="WP2 Initial Scan" /> | <img src="evidence/reinspected_runway-wp-02.jpg" width="380" alt="WP2 Reinspected" /> |
+| **runway-wp-03**<br/>`FOD-03: Blue Block`<br/>Initial Conf: `0.62` &rarr; Reinspected: `0.90` | <img src="evidence/uncertain_initial_runway-wp-03.jpg" width="380" alt="WP3 Initial Scan" /> | <img src="evidence/reinspected_runway-wp-03.jpg" width="380" alt="WP3 Reinspected" /> |
+| **runway-wp-04**<br/>`FOD-04: Purple Block`<br/>Initial Conf: `0.62` &rarr; Reinspected: `0.90` | <img src="evidence/uncertain_initial_runway-wp-04.jpg" width="380" alt="WP4 Initial Scan" /> | <img src="evidence/reinspected_runway-wp-04.jpg" width="380" alt="WP4 Reinspected" /> |
+| **runway-wp-05**<br/>`FOD-05: Green Block`<br/>Initial Conf: `0.62` &rarr; Reinspected: `0.90` | <img src="evidence/uncertain_initial_runway-wp-05.jpg" width="380" alt="WP5 Initial Scan" /> | <img src="evidence/reinspected_runway-wp-05.jpg" width="380" alt="WP5 Reinspected" /> |
 
 ---
 
@@ -47,7 +60,8 @@ flowchart TD
 ### 1. Navigation & Standoff Watchdog
 The robot iterates across 5 designated runway waypoints (`runway-wp-01` through `runway-wp-05`). 
 - Navigation commands are dispatched through `twin.navigation.goto([x, y, z])`.
-- The controller polls `twin.position` every 500ms (15s watchdog window) waiting for the 2D Euclidean distance to drop below 1.0 meter.
+- The controller polls `twin.position` every 500ms (15s watchdog window) waiting for the 2D Euclidean distance to drop below 1.0 meter:
+  $$d_{\text{2D}} = \sqrt{(x_{\text{curr}} - x_{\text{wp}})^2 + (y_{\text{curr}} - y_{\text{wp}})^2}$$
 - If Nav2 triggers obstacle avoidance standoff buffers or times out before hitting the 1.0m threshold, the controller invokes `twin.edit_position(x, y, z)` directly to advance the twin in the 3D viewport, pausing 1.5s for camera stabilization.
 
 ### 2. Scene Geometry & Yaw Alignment
@@ -69,7 +83,7 @@ flowchart LR
 
     Arbiter -->|"area < 30px<br/>(conf < 0.50)"| Clear["IGNORED<br/>Archive clear_runway_*.jpg"]
     Arbiter -->|"30 <= area < 250px<br/>(0.55 <= conf <= 0.80)"| Uncertain["UNCERTAIN<br/>Save uncertain_initial_*.jpg"]
-    Arbiter -->|"area >= 250px<br/>(conf >= 0.88)"| Confirmed["CONFIRMED FOD<br/>Save confirmed_*.jpg"]
+    Arbiter -->|"area >= 250px<br/>(conf >= 0.88)"| Confirmed["CONFIRMED FOD<br/>Save reinspected_*.jpg"]
 
     Uncertain --> Move["relative_move(+1.0m, frame='body')"]
     Move --> Rescan["Capture Second Frame"]
@@ -77,7 +91,7 @@ flowchart LR
 ```
 
 - **OpenCV HSV Segmentation**: Identifies debris by color bands (Red, Yellow, Blue, Purple, Green) with saturation tuned to ignore runway asphalt, sky reflections, and painted markings.
-- **Dynamic Re-Inspection**:
+- **Dynamic Re-Inspection Policy**:
   - Small or distant blocks ($30 \le \text{area} < 250\text{px}$) yield an initial confidence of `0.55 - 0.80`. The robot logs the initial frame and drives `1.0m` closer along its heading vector.
   - In the close-up shot, the hazard's pixel footprint expands ($\text{area} \ge 250\text{px}$), driving confidence $\ge 0.88$ to confirm detection.
 - **Evidence Archival**: Every evaluated frame—whether clear surface, initial uncertain distant scan, or close-up re-inspection—is annotated with bounding boxes, HUD telemetry, and written to disk.
@@ -88,11 +102,12 @@ flowchart LR
 
 ```text
 cyberwave/
-├── .env                  # Cyberwave API credentials and environment ID
-├── requirements.txt      # Python package dependencies
+├── .env.example          # Template environment configuration (safe for git)
+├── .gitignore            # Excludes secrets, caches, and large weights
+├── requirements.txt      # Python dependencies
 ├── run_robot.py          # Main patrol orchestration and vision pipeline
-├── yolov8n.pt            # Local YOLOv8 weights
-└── evidence/             # Annotated mission capture archive
+├── README.md             # Technical documentation & visual report
+└── evidence/             # Visual audit archive
     ├── uncertain_initial_runway-wp-01.jpg
     ├── reinspected_runway-wp-01.jpg
     ├── uncertain_initial_runway-wp-02.jpg
@@ -123,8 +138,13 @@ pip install -r requirements.txt
 ```
 
 ### 2. Configure Credentials
-Create a `.env` file in the project root:
+Copy the template configuration and supply your Cyberwave credentials:
 
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
 ```env
 CYBERWAVE_API_KEY="your_cyberwave_api_key_here"
 CYBERWAVE_ENVIRONMENT_ID="3a4083b5-9a82-4541-ac0b-45c2e6b1864f"
@@ -166,6 +186,6 @@ Mission Summary: 5 Waypoints Swept | 5 Confirmed Hazards | Output Directory: 'ev
 
 ## Technical Notes
 
-- **Camera Resolution**: Frames captured from the onboard sensor are standardized to $640 \times 360$. If the simulation backend returns uncompressed high-res sensor streams ($2560 \times 1440$), they are resized to keep contour areas calibrated to the distance scale ($30 - 250\text{px}$ for distant sweeps, $\ge 250\text{px}$ for close-ups).
+- **Camera Resolution Normalization**: Frames captured from the onboard sensor are standardized to $640 \times 360$. If the simulation backend returns uncompressed high-resolution sensor streams ($2560 \times 1440$), they are resized using area interpolation to maintain calibrated contour thresholds ($30 - 250\text{px}$ for distant sweeps, $\ge 250\text{px}$ for close-ups).
 - **Runway Centerline Isolation**: Centerlines follow standard aviation white stripes ($S \le 20$) rather than taxiway yellow to prevent the perception engine from confusing surface markings with yellow debris.
 - **Local vs Cloud Sensor Streaming**: The runner queries `twin.get_frame(source='local', sensor_id='front_camera')` which interfaces directly with the active simulation instance instead of waiting for public WebRTC/cloud relay endpoints.
