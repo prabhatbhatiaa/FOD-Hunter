@@ -129,8 +129,8 @@ cyberwave/
 
 ### 1. Clone & Setup Environment
 ```bash
-git clone https://github.com/your-username/cyberwave-fod-patrol.git
-cd cyberwave-fod-patrol
+git clone https://github.com/prabhatbhatiaa/FOD-Hunter.git
+cd  FOD-Hunter
 
 python -m venv venv
 # Windows:
