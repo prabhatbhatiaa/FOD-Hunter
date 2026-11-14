@@ -1,6 +1,7 @@
-# Runway FOD Patrol: Autonomous Inspection & Re-Verification
+<h1 align="center">FOD Hunter</h1> 
+<p align="center">Autonomous Runway Debris Inspection & Re-Verification System</p>
 
-Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) down an active runway, identifies small surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect ambiguous detections before logging verified evidence.
+Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) along an airport runway, identifies small surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect uncertain detections before logging verified visual evidence.
 
 ---
 
@@ -25,18 +26,18 @@ flowchart TD
         Storage["Evidence Logger<br/>(/evidence)"]
     end
 
-    WP -->|Target [x, y, z]| Nav2
-    Nav2 -->|goto / clearance feedback| NavWatchdog
-    NavWatchdog -->|Position confirmed| YawAlign
-    YawAlign -->|Rotate yaw| Twin
-    Twin -->|Capture frame| Camera
-    Camera -->|RGB Frame| Perception
+    WP -->|"Target [x, y, z]"| Nav2
+    Nav2 -->|"goto / clearance feedback"| NavWatchdog
+    NavWatchdog -->|"Position confirmed"| YawAlign
+    YawAlign -->|"Rotate yaw"| Twin
+    Twin -->|"Capture frame"| Camera
+    Camera -->|"RGB Frame"| Perception
     Perception --> Decision
-    Decision -->|conf >= 0.85| Storage
-    Decision -->|0.50 <= conf < 0.85| Reinspect
-    Reinspect -->|relative_move forward 1.0m| Twin
+    Decision -->|"conf >= 0.85"| Storage
+    Decision -->|"0.50 <= conf < 0.85"| Reinspect
+    Reinspect -->|"relative_move forward 1.0m"| Twin
     Reinspect --> Camera
-    Decision -->|conf < 0.50| Storage
+    Decision -->|"conf < 0.50"| Storage
 ```
 
 ---
