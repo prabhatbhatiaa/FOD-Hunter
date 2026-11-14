@@ -1,6 +1,7 @@
-# Runway FOD Patrol: Autonomous Inspection & Re-Verification
+<h1 align="center">FOD Hunter</h1> 
+<p align="center">Autonomous Runway Debris Inspection & Re-Verification System</p>
 
-Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) along an airport runway, detects surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect uncertain detections before logging verified visual evidence.
+Autonomous Foreign Object Debris (FOD) inspection agent built on the **Cyberwave** physical AI platform. The system directs a quadruped digital twin (**Unitree Go2**) along an airport runway, identifies small surface hazards using fused OpenCV HSV color segmentation and YOLOv8n inference, and autonomously maneuvers closer to re-inspect uncertain detections before logging verified visual evidence.
 
 ---
 
