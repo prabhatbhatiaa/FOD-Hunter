@@ -62,15 +62,18 @@ flowchart TD
 The robot iterates across 5 designated runway waypoints (`runway-wp-01` through `runway-wp-05`). 
 - Navigation commands are dispatched through `twin.navigation.goto([x, y, z])`.
 - The controller polls `twin.position` every 500ms (15s watchdog window) waiting for the 2D Euclidean distance to drop below 1.0 meter:
-  $$d_{\text{2D}} = \sqrt{(x_{\text{curr}} - x_{\text{wp}})^2 + (y_{\text{curr}} - y_{\text{wp}})^2}$$
+  
+  `d_2D = √((x_curr - x_wp)² + (y_curr - y_wp)²)`
+
 - If Nav2 triggers obstacle avoidance standoff buffers or times out before hitting the 1.0m threshold, the controller invokes `twin.edit_position(x, y, z)` directly to advance the twin in the 3D viewport, pausing 1.5s for camera stabilization.
 
 ### 2. Scene Geometry & Yaw Alignment
 Distant runway debris can easily fall outside the camera's horizontal field of view. Before capturing vision data at each waypoint:
 1. The script inspects the environment's universal schema and extracts the coordinates of all 5 procedural FOD primitives (`FOD-01` to `FOD-05`).
 2. It computes the nearest hazard relative to the robot's current pose:
-   $$\theta_{\text{yaw}} = \operatorname{atan2}(y_{\text{target}} - y_{\text{curr}},\, x_{\text{target}} - x_{\text{curr}})$$
-3. The twin adjusts its heading toward the debris via `twin.edit_rotation(yaw=yaw_deg)` so the object sits squarely inside the camera frustum.
+   
+   `θ_yaw = atan2(y_target - y_curr, x_target - x_curr)`
+
 
 ### 3. Perception & Dual-Stage Decision Policy
 
