@@ -56,7 +56,7 @@ flowchart TD
 
 ---
 
-## How It Works
+## Working
 
 ### 1. Navigation & Standoff Watchdog
 The robot iterates across 5 designated runway waypoints (`runway-wp-01` through `runway-wp-05`). 
